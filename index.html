@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AREA LAB</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(145deg, #0b1020, #21143b);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    main { width: 100%; max-width: 700px; }
+    header { text-align: center; margin-bottom: 38px; }
+    h1 { font-size: clamp(38px, 9vw, 60px); margin: 0 0 12px; }
+    header p { color: #c4b5fd; letter-spacing: 1px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .item {
+      background: #ffffff0d;
+      border: 1px solid #a78bfa44;
+      border-radius: 20px;
+      padding: 28px 12px;
+      text-align: center;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+    .symbol {
+      display: block;
+      font-size: 36px;
+      margin-bottom: 14px;
+      color: #c4b5fd;
+    }
+    footer {
+      text-align: center;
+      color: #9388ad;
+      font-size: 12px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>AREA LAB</h1>
+      <p>Prepared by rahma albana</p>
+    </header>
+    <section class="grid">
+      <div class="item"><span class="symbol">📚</span>Lectures</div>
+      <div class="item"><span class="symbol">✓</span>Quizzes</div>
+      <div class="item"><span class="symbol">▶</span>Videos</div>
+      <div class="item"><span class="symbol">📁</span>Files</div>
+    </section>
+    <footer>Nursing Learning Platform</footer>
+  </main>
+</body>
+</html>
