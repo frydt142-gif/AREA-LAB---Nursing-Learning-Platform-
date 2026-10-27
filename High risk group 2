@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AREA High Risk – Group 2</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 25px 15px;
+      font-family: Arial, sans-serif;
+      color: #f4f4f5;
+      background: #10131c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      padding: 28px 22px;
+      border: 1px solid #34394b;
+      border-radius: 20px;
+      background: #191e2b;
+      box-shadow: 0 15px 45px #0005;
+    }
+    .brand {
+      direction: ltr;
+      text-align: center;
+      color: #9b8cff;
+      font-size: 27px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 21px;
+      margin: 10px 0;
+    }
+    .subtitle {
+      text-align: center;
+      color: #a8adbd;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin: 17px 0 8px;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #41475a;
+      border-radius: 10px;
+      color: #fff;
+      background: #111622;
+      font-size: 15px;
+    }
+    input:focus, select:focus {
+      outline: 2px solid #8d7bff;
+    }
+    select option { background: #191e2b; }
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 24px;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      background: #7562e8;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    #message {
+      display: none;
+      margin-top: 18px;
+      padding: 13px;
+      border-radius: 9px;
+      line-height: 1.7;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+    .note {
+      margin-top: 20px;
+      color: #a8adbd;
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">AREA HIGH RISK</div>
+    <h1>تسجيل توزيع المستشفيات</h1>
+    <div class="subtitle">
+      Group 2<br>
+      اختاري المستشفى وسجّلي بياناتك لإتمام التسجيل.
+    </div>
+
+    <form id="registrationForm">
+      <label for="name">الاسم بالكامل</label>
+      <input id="name" type="text" maxlength="120"
+        autocomplete="name" required placeholder="اكتبي اسمك بالكامل">
+
+      <label for="email">البريد الإلكتروني (Gmail)</label>
+      <input id="email" type="email" maxlength="254"
+        autocomplete="email" required placeholder="example@gmail.com"
+        dir="ltr">
+
+      <label for="hospital">اختاري المستشفى</label>
+      <select id="hospital" required>
+        <option value="">جاري تحميل الأماكن المتاحة...</option>
+      </select>
+
+      <button id="submitBtn" type="submit" disabled>
+        تأكيد التسجيل
+      </button>
+    </form>
+
+    <div id="message" role="status" aria-live="polite"></div>
+
+    <div class="note">
+      التسجيل يخضع لتوافر الأماكن بكل مستشفى.
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL =
+      "https://slzsgdhnspwdhvozcman.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_pNZXQAaWP-ohifmS9LyNGQ_TJ8c8h0A";
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const hospitals = [
+      "الرحمانية PICU",
+      "الرحمانية NICU",
+      "إيتاي PICU",
+      "الدلنجات"
+    ];
+
+    const form = document.getElementById("registrationForm");
+    const hospitalSelect = document.getElementById("hospital");
+    const submitBtn = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
+
+    function showMessage(text, success = false) {
+      message.textContent = text;
+      message.style.display = "block";
+      message.style.background = success ? "#173d31" : "#48252e";
+      message.style.color = success ? "#a6f3cf" : "#ffc0c8";
+    }
+
+    async function loadAvailability() {
+      submitBtn.disabled = true;
+      hospitalSelect.innerHTML =
+        '<option value="">جاري تحميل الأماكن...</option>';
+
+      const { data, error } = await db.rpc(
+        "get_hospital_availability"
+      );
+
+      if (error || !Array.isArray(data)) {
+        hospitalSelect.innerHTML =
+          '<option value="">تعذّر تحميل الأماكن المتاحة</option>';
+        showMessage(
+          "لم نتمكن من تحميل الأماكن. قد تحتاج إعدادات Supabase إلى استكمال."
+        );
+        return;
+      }
+
+      hospitalSelect.innerHTML =
+        '<option value="">اختاري المستشفى</option>';
+
+      hospitals.forEach(name => {
+        const item = data.find(row => row.hospital === name);
+        const remaining = item ? Number(item.remaining_slots) : 0;
+        const option = document.createElement("option");
+        option.value = name;
+
+        if (!item || remaining <= 0) {
+          option.textContent = name + " — اكتمل العدد";
+          option.disabled = true;
+        } else {
+          option.textContent =
+            name + " — متاح " + remaining + " مكان";
+        }
+
+        hospitalSelect.appendChild(option);
+      });
+
+      submitBtn.disabled = false;
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const fullName = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const hospital = hospitalSelect.value;
+
+      if (!fullName || !email || !hospital) {
+        showMessage("من فضلك املئي كل البيانات واختاري المستشفى.");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "جاري التسجيل...";
+      message.style.display = "none";
+
+      try {
+        const { data, error } = await db.rpc(
+          "register_hospital_student",
+          {
+            p_full_name: fullName,
+            p_email: email,
+            p_hospital: hospital
+          }
+        );
+
+        if (error) {
+          showMessage("تعذّر إتمام التسجيل. حاولي مرة أخرى لاحقًا.");
+          console.error(error);
+        } else {
+          const result = typeof data === "string" ? data : "";
+
+          if (result === "CONFIRMED") {
+            showMessage(
+              "تم تسجيلك بنجاح! احتفظي ببيانات التسجيل.",
+              true
+            );
+            form.reset();
+            await loadAvailability();
+          } else if (result === "DUPLICATE_EMAIL") {
+            showMessage("هذا البريد الإلكتروني مسجل من قبل.");
+          } else if (result === "HOSPITAL_FULL") {
+            showMessage("اكتمل العدد في هذه المستشفى. اختاري مستشفى أخرى.");
+            await loadAvailability();
+          } else if (result === "INVALID_DATA") {
+            showMessage("راجعي الاسم والبريد الإلكتروني.");
+          } else if (result === "INVALID_HOSPITAL") {
+            showMessage("اختيار المستشفى غير صالح. حدّثي الصفحة.");
+          } else {
+            showMessage("لم يتم تأكيد التسجيل. حاولي مرة أخرى.");
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage("حدث خطأ في الاتصال. حاولي مرة أخرى.");
+      } finally {
+        submitBtn.textContent = "تأكيد التسجيل";
+        submitBtn.disabled = false;
+      }
+    });
+
+    loadAvailability();
+  </script>
+</body>
+</html>
